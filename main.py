@@ -2,8 +2,8 @@ def print_hi(name):
     print(f'Hi, {name}')
 
 
-def summ(a):
-    print(a + a)
+def summ(var):
+    print(var + var)
 
 
 if __name__ == '__main__':

@@ -5,5 +5,6 @@ def print_hi(name):
 if __name__ == '__main__':
     print_hi('PyCharm')
     a = 9
-    print (a)
-
+    print(a)
+    print(3)
+    print(4)

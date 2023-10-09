@@ -8,6 +8,6 @@ class Constants:
         for index, row in df.iterrows():
             key = row['Обозначение']
             value = row['Значение']
-            constant_dict[key] = value
+            constant_dict[key] = float(value)
 
         self.constant_dict = constant_dict

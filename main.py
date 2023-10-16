@@ -1,12 +1,13 @@
 import csv
 from constants import Constants
+from constants import ConstantNotFoundException
 
 
 # TODO: fix start date of count from excel file
 def hut_count(data):
     hut = []
     for dict in data:
-        average_temp = (float(dict["max_temp"]) + float(dict["min_temp"])) / 2 - constants.constant_dict["Tb"]
+        average_temp = (float(dict["max_temp"]) + float(dict["min_temp"])) / 2 - getattr(constants, "Tb")
         hut.append(average_temp if average_temp > 0 else 0)
     return hut
 
@@ -14,7 +15,7 @@ def hut_count(data):
 def hui_count(hut):
     hui = []
     for i in range(len(hut)):
-        hui.append(sum(hut[0:i]) / constants.constant_dict["PHU"])
+        hui.append(sum(hut[0:i]) / getattr(constants, "PHU"))
     return hui
 
 
@@ -35,5 +36,9 @@ def main():
 
 
 if __name__ == '__main__':
-    constants = Constants()
+    try:
+        constants = Constants()
+    except ConstantNotFoundException:
+        exit(1)
+
     main()

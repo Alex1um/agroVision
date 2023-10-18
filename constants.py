@@ -1,4 +1,5 @@
-import pandas as pd
+import openpyxl
+import logging
 
 
 class ConstantNotFoundException(Exception):
@@ -23,24 +24,21 @@ class Constants:
     bc2: float
     bc3: float
 
-    def __init__(self):
-        constant_dict = {}
-        df = pd.read_excel('./constants/constant_raion.xlsx')
-        for index, row in df.iterrows():
-            key = row['Обозначение']
-            value = row['Значение']
-            constant_dict[key] = float(value)
+    def __init__(self, file_parh: str):
+        sheet = openpyxl.open(file_parh).active
+        readed_const_dict = dict(sheet.iter_rows(2, None, 2, None, values_only=True))
+        logging.info(f"Считанs константs {readed_const_dict}")
+        for k, v in readed_const_dict.items():
+            self.__setattr__(k, v)
 
-            # print(constant_dict)
-            # self.constant_dict = constant_dict
+        not_found_constants = set(self.__annotations__.keys()) - set(readed_const_dict.keys())
+        for const in not_found_constants:
+            logging.error(f"Константа '{const}' не найдена в таблице констант.")
+        if not_found_constants:
+            raise ConstantNotFoundException("Const not found")
+    
+    def __repr__(self) -> str:
+        return repr(vars(self))
 
-        constants_to_check = ["D_LAI", "HI", "HMX", "LAImx", "PHU", "RDMX", "SNk", "Tb", "Topt", "ad", "СО2", "ah1",
-                              "ah2", "bc1", "bc2", "bc3"]
-        #  Constants.__dict__["__annotations__"].keys()
-        for const in Constants.__dict__["__annotations__"].keys():
-            value = constant_dict.get(const)
-            if value is not None:
-                setattr(self, const, value)
-            else:
-                print(f"Константа '{const}' не найдена в таблице констант.")
-                raise ConstantNotFoundException("Const not found")
+if __name__ == "__main__":
+    print(Constants("constants/constant_raion.xlsx"))

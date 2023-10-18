@@ -15,36 +15,22 @@ class Data:
     avg_wind_speed: float
 
 
-    def __init__(self) -> None:
-        self.name = np.array([])
-        self.lat = np.array([])
-        self.long = np.array([])
-        self.date = np.array([])
-        self.Tmax = np.array([])  
-        self.Tmin = np.array([])
-        self.daily_precipitation_amount = np.array([])
-        self.rel_humidity = np.array([])
-        self.avg_wind_speed = np.array([])
-
-    @classmethod
-    def from_file(cls, file_path: str):
-        cls = cls()
+    def __init__(self, file_path: str):
         try:
             xl = openpyxl.open(file_path)
             page = xl.active
-            for k, readed in zip(vars(cls).keys(), page.iter_cols(0,len(vars(cls)), values_only=True)):
-                cls.__setattr__(k, np.array(readed))
+            for k, readed in zip(self.__annotations__.keys(), page.iter_cols(0,len(vars(self)), values_only=True)):
+                self.__setattr__(k, np.array(readed))
         except InvalidFileException:
             with open(file_path, "r") as f:
                 readed = csv.reader(f)
-                for k in vars(cls).keys():
-                    cls.__setattr__(k, list())
+                for k in self.__annotations__.keys():
+                    self.__setattr__(k, list())
                 for row in readed:
-                    for (col_name, col_data), v in zip(vars(cls).items(), row):
-                        col_data.append(cls.__annotations__[col_name](v))
-                for k, v in vars(cls).items():
-                    cls.__setattr__(k, np.array(v))
-        return cls
+                    for (col_name, col_data), v in zip(vars(self).items(), row):
+                        col_data.append(self.__annotations__[col_name](v))
+                for k, v in vars(self).items():
+                    self.__setattr__(k, np.array(v))
 
     def __repr__(self) -> str:
         return repr(np.array(vars(self).values()))

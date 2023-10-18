@@ -8,7 +8,7 @@ class ConstantNotFoundException(Exception):
 
 class Constants:
     D_LAI: float
-    HI: float
+    HI: float #three values from Таблица вычислений_НСО_районы_2022.xlsx
     HMX: float
     LAImx: float
     PHU: float

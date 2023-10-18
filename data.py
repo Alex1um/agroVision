@@ -2,12 +2,22 @@ import openpyxl
 import numpy as np
 import csv
 from openpyxl.utils.exceptions import InvalidFileException
+from datetime import datetime
+import logging
+
+class Date:
+    
+    def __init__(self, date: str) -> None:
+        self.date = datetime.strptime(date, "%Y/%m/%d")
+    
+    def __repr__(self) -> str:
+        return datetime.strftime(self.date, "%Y/%m/%d")
 
 class Data:
     name: str
     lat: float
     long: float
-    date: str
+    date: Date
     Tmax: float
     Tmin: float
     daily_precipitation_amount: float
@@ -27,12 +37,15 @@ class Data:
                 for k in self.__annotations__.keys():
                     self.__setattr__(k, list())
                 for row in readed:
-                    if len(row) == 0:
-                        break
                     for (col_name, col_data), v in zip(vars(self).items(), row):
                         if "\t"*5 in v:
-                            v = v[:v.find("\t")]
-                        col_data.append(self.__annotations__[col_name](v))
+                            dbg = v[:v.find("\t")]
+                            logging.warning(f"found tabs in '{row}' at '{v}'. truncated to {dbg}")
+                            v = dbg
+                        try:
+                            col_data.append(self.__annotations__[col_name](v))
+                        except Exception as e:
+                            logging.warning(f"Exception {e} occuped while parsing {v} to {self.__annotations__[col_name]}.skipping row...")
                 for k, v in vars(self).items():
                     self.__setattr__(k, np.array(v))
 

@@ -62,17 +62,7 @@ def delta_huf_count(huf: np.ndarray):
 
 
 def main():
-    bagan_data = []  # - array of dictionaries
-    headers = ["name", "latitude", "longitude", "date", "max_temp", "min_temp", "rain", "humidity", "wind_speed"]
 
-    # with open('./meteo_data/BAGAN.csv', mode='r') as file:
-    #     csv_reader = csv.reader(file)
-    #     for row in csv_reader:
-    #         row_dict = {headers[i]: row[i] for i in range(len(headers))}
-    #         bagan_data.append(row_dict)
-
-    # max_temps = np.array([float(dict["max_temp"]) for dict in bagan_data])
-    # min_temps = np.array([float(dict["min_temp"]) for dict in bagan_data])
     data = Data("./meteo_data/BAGAN.csv")
 
     hut = hut_count(data.Tmax, data.Tmin)

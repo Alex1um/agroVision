@@ -5,8 +5,9 @@ from openpyxl.utils.exceptions import InvalidFileException
 from datetime import datetime
 import logging
 
+
 class Date:
-    
+
     def __init__(self, date: str) -> None:
         if isinstance(date, datetime):
             self.date = date
@@ -14,9 +15,10 @@ class Date:
             self.date = datetime.strptime(date, "%Y/%m/%d")
         else:
             raise Exception("Cannot parse date")
-    
+
     def __repr__(self) -> str:
         return datetime.strftime(self.date, "%Y/%m/%d")
+
 
 class Data:
     name: str
@@ -28,7 +30,6 @@ class Data:
     daily_precipitation_amount: float
     rel_humidity: float
     avg_wind_speed: float
-
 
     def __init__(self, file_path: str):
         try:
@@ -68,12 +69,11 @@ class Data:
     def append(self, data):
         for sk, sv in self.__dict__.items():
             self.__setattr__(sk, np.append(sv, data.__getattribute__(sk)))
-    
+
     def to_csv(self, file: str):
         with open(file, "w") as f:
             wr = csv.writer(f)
             wr.writerows(zip(*self.__dict__.values()))
-
 
     def __repr__(self) -> str:
         return repr(np.array(self.__dict__.values()))

@@ -27,7 +27,9 @@ class Constants:
     def __init__(self, file_parh: str):
         sheet = openpyxl.open(file_parh).active
         readed_const_dict = dict(sheet.iter_rows(2, None, 2, None, values_only=True))
-        logging.info(f"Считанs константs {readed_const_dict}")
+
+        logging.info(f"Считана константа {readed_const_dict}")
+
         for k, v in readed_const_dict.items():
             self.__setattr__(k, v)
 
@@ -40,5 +42,3 @@ class Constants:
     def __repr__(self) -> str:
         return repr(vars(self))
 
-if __name__ == "__main__":
-    print(Constants("constants/constant_raion.xlsx"))

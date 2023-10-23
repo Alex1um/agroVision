@@ -34,44 +34,54 @@ class Data:
         try:
             xl = openpyxl.open(file_path)
             page = xl.active
-            for k, readed in zip(self.__annotations__.keys(), page.iter_cols(0,len(vars(self)), values_only=True)):
-                tpe = self.__annotations__[k]
+            # iterate over annotations and readed from xl cols. NOTE: Assuming annotations and columns are in the same order
+            for (k, tpe), readed in zip(self.__annotations__.items(), page.iter_cols(0,len(self.__annotations__), values_only=True)):
+                # vectorize type for faster type conversions
                 np_func = np.vectorize(tpe)
+                # set attribute to readed array, converted to annotation type
                 self.__setattr__(k, np_func(np.array(readed)))
         except InvalidFileException:
             with open(file_path, "r") as f:
                 readed = csv.reader(f)
+                # setup empty lists to read into them for each attribute
                 for k in self.__annotations__.keys():
                     self.__setattr__(k, list())
+                # iterate over rows
                 for row in readed:
-                    for (col_name, col_data), v in zip(vars(self).items(), row):
+                    # iterate over columns
+                    for (col_name, col_data), v in zip(self.__dict__.items(), row):
+                        # check tabs and strip
                         if "\t"*5 in v:
                             dbg = v[:v.find("\t")]
                             logging.warning(f"found tabs in '{row}' at '{v}'. truncated to {dbg}")
                             v = dbg
                         try:
+                            # convert readed value and add to current (col_name) attribute list
                             col_data.append(self.__annotations__[col_name](v))
                         except Exception as e:
+                            # NOTE: Skipping non-convertible lines
                             logging.warning(f"Exception {e} occuped while parsing {v} to {self.__annotations__[col_name]}.skipping row...")
-                for k, v in vars(self).items():
+                # convert attribute lists to np.array
+                for k, v in self.__dict__.items():
                     self.__setattr__(k, np.array(v))
 
     def append(self, data):
-        for sk, sv in vars(self).items():
+        for sk, sv in self.__dict__.items():
             self.__setattr__(sk, np.append(sv, data.__getattribute__(sk)))
     
     def to_csv(self, file: str):
         with open(file, "w") as f:
             wr = csv.writer(f)
-            wr.writerows(zip(*vars(self).values()))
+            wr.writerows(zip(*self.__dict__.values()))
 
 
     def __repr__(self) -> str:
-        return repr(np.array(vars(self).values()))
+        return repr(np.array(self.__dict__.values()))
 
 if __name__ == "__main__":
     # print(Data("./meteo_data/BAGAN.csv"))
     # print(Data("./1_первая часть сезона/метео/BAGAN"))
+    # print(Data("./combined/BAGAN.csv").__dict__)
     import glob
     for f1, f2 in zip(
         sorted(glob.glob("1_первая часть сезона/метео/*"), key=lambda x: x.split("/")[-1]), 

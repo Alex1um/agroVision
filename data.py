@@ -8,7 +8,12 @@ import logging
 class Date:
     
     def __init__(self, date: str) -> None:
-        self.date = datetime.strptime(date, "%Y/%m/%d")
+        if isinstance(date, datetime):
+            self.date = date
+        elif isinstance(date, str):
+            self.date = datetime.strptime(date, "%Y/%m/%d")
+        else:
+            raise Exception("Cannot parse date")
     
     def __repr__(self) -> str:
         return datetime.strftime(self.date, "%Y/%m/%d")
@@ -30,7 +35,9 @@ class Data:
             xl = openpyxl.open(file_path)
             page = xl.active
             for k, readed in zip(self.__annotations__.keys(), page.iter_cols(0,len(vars(self)), values_only=True)):
-                self.__setattr__(k, np.array(readed))
+                tpe = self.__annotations__[k]
+                np_func = np.vectorize(tpe)
+                self.__setattr__(k, np_func(np.array(readed)))
         except InvalidFileException:
             with open(file_path, "r") as f:
                 readed = csv.reader(f)

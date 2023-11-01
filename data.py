@@ -14,7 +14,7 @@ class Date:
         elif isinstance(date, str):
             self.date = datetime.strptime(date, "%Y/%m/%d")
         else:
-            raise Exception("Cannot parse date")
+            raise ValueError(f"Cannot parse date from value {date}")
 
     def __repr__(self) -> str:
         return datetime.strftime(self.date, "%Y/%m/%d")

@@ -5,28 +5,16 @@ from openpyxl.utils.exceptions import InvalidFileException
 from datetime import datetime
 import logging
 from openpyxl.worksheet.worksheet import Worksheet
+from Date import Date
+from NpAnnotBase import NpAnnotBase
 
-class XlNumDate:
-
-    def __init__(self, raw_date: float) -> None:
-        if isinstance(raw_date, datetime):
-            self.date = raw_date
-        elif isinstance(raw_date, float):
-            d, m = divmod(raw_date, 1)
-            m = int(round(m, 2) * 100)
-            d = int(d)
-            self.date = datetime(2023, m, d)
-        else:
-            raise ValueError(f"Cannot parse date from value {raw_date}")
-
-    def __repr__(self) -> str:
-        return datetime.strftime(self.date, "%Y/%m/%d")
-
-class Solar:
-    date: XlNumDate
+class Solar(NpAnnotBase):
+    date: Date
     radiation: float
 
-    def __init__(self, file_path: str) -> None:
+    @classmethod
+    def from_file(self, file_path: str) -> None:
+        self = self()
         is_xl = True
         param_count = len(self.__annotations__)
         # xl same as in data
@@ -85,15 +73,12 @@ class Solar:
                 # convert to arrays
                 for month, values in zip(months, values):
                     for i, val in enumerate(values):
-                        self.date.append(XlNumDate(datetime.strptime(f"{i + 1}/{month}", "%d/%m/%y")))
+                        self.date.append(Date(datetime.strptime(f"{i + 1}/{month}", "%d/%m/%y")))
                         self.radiation.append(val)
                 self.date = np.array(self.date)
                 self.radiation = np.array(self.radiation)
-
-
-    def __repr__(self) -> str:
-        return repr(np.array(self.__dict__.values()))
+        return self
 
 if __name__ == "__main__":
     # print(Solar("2_вторая часть сезона/солнечная радиация/sun_bagan.xlsx"))
-    print(Solar("1_первая часть сезона/солнечная радиация/sun_bagan"))
+    print(Solar.from_file("1_первая часть сезона/солнечная радиация/sun_bagan"))

@@ -4,23 +4,10 @@ import csv
 from openpyxl.utils.exceptions import InvalidFileException
 from datetime import datetime
 import logging
+from Date import Date
+from NpAnnotBase import NpAnnotBase
 
-
-class Date:
-
-    def __init__(self, date: str) -> None:
-        if isinstance(date, datetime):
-            self.date = date
-        elif isinstance(date, str):
-            self.date = datetime.strptime(date, "%Y/%m/%d")
-        else:
-            raise ValueError(f"Cannot parse date from value {date}")
-
-    def __repr__(self) -> str:
-        return datetime.strftime(self.date, "%Y/%m/%d")
-
-
-class Data:
+class Data(NpAnnotBase):
     name: str
     lat: float
     long: float
@@ -31,9 +18,11 @@ class Data:
     rel_humidity: float
     avg_wind_speed: float
 
-    def __init__(self, file_path: str):
+    @classmethod
+    def from_file(self, file_path: str):
         # Assuming file is xl
         xl = True
+        self = self()
         try:
             xl = openpyxl.open(file_path)
             page = xl.active
@@ -83,33 +72,31 @@ class Data:
                 # convert attribute lists to np.array
                 for k, v in zip(self.__annotations__.keys(), parsed):
                     self.__setattr__(k, v)
+        return self
 
-    def append(self, data):
-        for sk, sv in self.__dict__.items():
-            self.__setattr__(sk, np.append(sv, data.__getattribute__(sk)))
-
-    def to_csv(self, file: str):
-        with open(file, "w") as f:
-            wr = csv.writer(f)
-            wr.writerows(zip(*self.__dict__.values()))
-
-    def __repr__(self) -> str:
-        return repr(np.array(self.__dict__.values()))
 
 if __name__ == "__main__":
     # print(Data("./meteo_data/BAGAN.csv"))
     # print(Data("./1_первая часть сезона/метео/BAGAN"))
-    # print(Data("./1_первая часть сезона/метео/TOGUCHI"))
-    print(Data("./combined/BAGAN.csv").__dict__)
-    import glob
-    for f1, f2 in zip(
-        sorted(glob.glob("1_первая часть сезона/метео/*"), key=lambda x: x.split("/")[-1]), 
-        sorted(glob.glob("2_вторая часть сезона/метео/*"), key=lambda x: x.split("/")[-1])
-        ):
-        name = f1.split("/")[-1]
-        print(f1, f2)
-        d1 = Data(f1)
-        d2 = Data(f2)
-        # print(d2)
-        d1.append(d2)
-        d1.to_csv(f"combined/{name}.csv")
+    # print(Data("./combined/BAGAN.csv").__dict__)
+    d = Data.from_file("1_первая часть сезона/метео/BAGAN")
+    d1 = Data.from_file("1_первая часть сезона/метео/BAGAN")
+    d2 = Data.from_file("2_вторая часть сезона/метео/BAGAN.xlsx")
+    print(d[1].date)
+    print(d["2022/05/05":"2022/05/17"].date)
+    print(d["2022/05/25":].date)
+    print(len(d1))
+    print(len(d2))
+    print(len(d1 + d2))
+    # import glob
+    # for f1, f2 in zip(
+    #     sorted(glob.glob("1_первая часть сезона/метео/*"), key=lambda x: x.split("/")[-1]), 
+    #     sorted(glob.glob("2_вторая часть сезона/метео/*"), key=lambda x: x.split("/")[-1])
+    #     ):
+    #     name = f1.split("/")[-1]
+    #     print(f1, f2)
+    #     d1 = Data(f1)
+    #     d2 = Data(f2)
+    #     # print(d2)
+    #     d1.append(d2)
+    #     d1.to_csv(f"combined/{name}.csv")

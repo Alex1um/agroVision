@@ -1,17 +1,15 @@
 import math
 
-import numpy as np
-from constants import Constants
-from constants import ConstantNotFoundException
-from data import Data
-from solar import Solar
+from Constants import Constants
+from Constants import ConstantNotFoundException
+from Data import Data
+from Solar import Solar
 from ResultTable import *
-from datetime import *
 
 
 def hut_count(max_temps: np.ndarray, min_temps: np.ndarray):
     average_temps = (max_temps + min_temps) / 2 - constants.Tb
-    return np.maximum(average_temps, 0)  # for each element if it < 0 replace with 0, else doesn't replace
+    return np.where(average_temps > 0, average_temps, 0)
 
 
 def hui_count(hut: np.ndarray):
@@ -31,11 +29,12 @@ def delta_huf_count(huf: np.ndarray):
 
 
 def dh_count(hui: np.ndarray):
-    mask = hui >= constants.D_LAI
+    mask = (hui >= constants.D_LAI)
     indices = np.where(mask)
     if len(indices[0]) > 0:
         return indices[0][0]
     return 0
+
 
 def reg_count(max_temps: np.ndarray, min_temps: np.ndarray, daily_precipitation_amount: np.ndarray):
     return (np.sum(daily_precipitation_amount) * 10) / np.sum((max_temps + min_temps) / 2)
@@ -44,8 +43,8 @@ def reg_count(max_temps: np.ndarray, min_temps: np.ndarray, daily_precipitation_
 def lai_count(delta_huf: np.ndarray, hui: np.ndarray, reg: float, dh_count: int):
     lai = [0]
     for i in range(1, dh_count + 1):
-        lai.append(lai[i - 1] + delta_huf[i] * constants.LAImx * (
-                1 - math.exp(5 * (lai[i - 1] - constants.LAImx))) * math.sqrt(reg))
+        delta_lai = delta_huf[i] * constants.LAImx * (1 - math.exp(5 * (lai[i - 1] - constants.LAImx))) * math.sqrt(reg)
+        lai.append(lai[i - 1] + delta_lai)
     for j in range(dh_count + 1, len(delta_huf)):
         lai.append(lai[dh_count] * (((1 - hui[j]) / (1 - hui[dh_count])) ** constants.ad))
     return np.array(lai)
@@ -60,7 +59,7 @@ def vpd_count(rel_humidity: np.ndarray):
 
 
 def be_CO2_count():
-    return 100 * constants.СО2 / (constants.СО2 + math.exp(constants.bc1 - constants.bc2 * constants.СО2))
+    return 100 * constants.CO2 / (constants.CO2 + math.exp(constants.bc1 - constants.bc2 * constants.CO2))
 
 
 def be_count(vpd: np.ndarray, be_CO2: float):
@@ -97,38 +96,50 @@ def main():
         solar_file_path_2 = table.find_path_in_dir("2_вторая часть сезона",
                                                    solar_file_name)  # Параметры: путь до папки, в которой искать, имя файла
 
-      #  print(meteo_file_name)
         data: Data = Data.from_file(meteo_file_path_1)
         data2: Data = Data.from_file(meteo_file_path_2)
-        data += data2
-        data = data[date_start:]
+        full_data = data + data2
+        data = full_data[date_start:]
 
         solar: Solar = Solar.from_file(solar_file_path_1)
         solar2: Solar = Solar.from_file(solar_file_path_2)
         solar += solar2
         solar = solar[date_start:]
 
-        # data.trim("05/05/2023")
         hut = hut_count(data.Tmax, data.Tmin)
+
         hui = hui_count(hut)
+
         huf = huf_count(hui)
+
         delta_huf = delta_huf_count(huf)
+
         dh: int = dh_count(hui)
-        date: datetime = data.date[0].date
-        year = date.year
-        mid_date = str(year) + "/07/17"
-        data3 = data[:mid_date]
-        reg: float = reg_count(data3.Tmax, data3.Tmin, data3.daily_precipitation_amount)
+
+        mid_date = data2.date[0].date
+        mid_data = full_data[:mid_date]
+        reg: float = reg_count(mid_data.Tmax, mid_data.Tmin, mid_data.daily_precipitation_amount)
+
         lai = lai_count(delta_huf, hui, reg, dh)
+
         par = par_count(lai, solar.radiation)
+
         vpd = vpd_count(data.rel_humidity)
+
         be_CO2: float = be_CO2_count()
+
         be = be_count(vpd, be_CO2)
+
         delta_bp = delta_bp_count(be, par)
+
         delta_b = delta_b_count(delta_bp, reg)
+
         biom = biom_count(delta_b)
+
         result = result_count(biom)
-        print(meteo_file_name, result)
+
+        print(meteo_file_name, solar_file_name, date_start, mid_date, len(data.Tmax), result, np.max(biom))
+        #print(result * HI[0] * 10, result * HI[1] * 10, result * HI[2] * 10)
 
         table.set_current_row((result * HI[0] * 10, result * HI[1] * 10, result * HI[2] * 10))
         # Запись в Прогноз (индекс 1, индекс 2, индекс 1). Можно использовать любой итератор(list/tuple/np.array)

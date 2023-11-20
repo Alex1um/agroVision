@@ -1,5 +1,6 @@
 from datetime import datetime
 
+
 class Date:
 
     def __init__(self, date: str | datetime, year=2022) -> None:
@@ -16,7 +17,7 @@ class Date:
             self.date = datetime(year, m, d)
         else:
             raise ValueError(f"Cannot parse date from {date} of type {type(date)}")
-    
+
     def __eq__(self, __value: object) -> bool:
         if isinstance(__value, Date):
             return self.date == __value.date
@@ -24,7 +25,7 @@ class Date:
             return self.date == __value
         else:
             raise ValueError(f"operator '==' of {type(self)} and {type(__value)} is not implemented")
-    
+
     def __gt__(self, __value: object) -> bool:
         if isinstance(__value, Date):
             return self.date > __value.date
@@ -38,7 +39,7 @@ class Date:
 
     def __le__(self, __value: object) -> bool:
         return not self > __value
-    
+
     def __ge__(self, __value: object) -> bool:
         return self > __value or self == __value
 

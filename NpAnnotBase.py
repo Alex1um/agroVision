@@ -3,18 +3,18 @@ import csv
 from Date import Date
 from datetime import datetime
 
+
 class NpAnnotBase:
 
     def __init__(self) -> None:
         for k, v in self.__annotations__.items():
             self.__setattr__(k, np.array([], dtype=v))
 
-
     def __iadd__(self, data):
         for sk, sv in self.__dict__.items():
             self.__setattr__(sk, np.append(sv, data.__getattribute__(sk)))
         return self
-    
+
     def __add__(self, data):
         new = self.__class__()
         for sk, sv in new.__dict__.items():
@@ -23,12 +23,11 @@ class NpAnnotBase:
             new.__setattr__(sk, np.append(sv, data.__getattribute__(sk)))
         return new
 
-
     def to_csv(self, file: str):
         with open(file, "w") as f:
             wr = csv.writer(f)
             wr.writerows(zip(*self.__dict__.values()))
-    
+
     def __getitem__(self, elem: str | int):
         """
         returns new Data object from original Data slices
@@ -66,17 +65,17 @@ class NpAnnotBase:
                 idx = np.where(date_cond)
             else:
                 idx = islice
-            for k, v in  self.__dict__.items():
+            for k, v in self.__dict__.items():
                 new.__setattr__(k, np.array(v[idx]))
         else:
             if isinstance(elem, int):
                 index = elem
             elif isinstance(elem, (str, datetime)):
                 index = np.where(self.date == Date(elem))
-            for k, v in  self.__dict__.items():
+            for k, v in self.__dict__.items():
                 new.__setattr__(k, np.array(v[index]))
         return new
-    
+
     def __len__(self) -> int:
         for e in self.__dict__.values():
             return len(e)

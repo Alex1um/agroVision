@@ -8,6 +8,7 @@ from openpyxl.worksheet.worksheet import Worksheet
 from Date import Date
 from NpAnnotBase import NpAnnotBase
 
+
 class Solar(NpAnnotBase):
     date: Date
     radiation: float
@@ -26,12 +27,13 @@ class Solar(NpAnnotBase):
             for row_i, row in enumerate(sheet.iter_rows(values_only=True)):
                 parsed_row = list()
                 for (name, type), val in zip(self.__annotations__.items(), row):
-                    if val: 
+                    if val:
                         # try parse readed value to annotation type
                         try:
                             parsed_row.append(type(val))
                         except Exception as e:
-                            logging.warning(f"Exception {e} occuped while parsing {val} to {name} at {row_i} row. Skipping row...")
+                            logging.warning(
+                                f"Exception {e} occuped while parsing {val} to {name} at {row_i} row. Skipping row...")
                             break
                 else:
                     # check parsed count
@@ -78,6 +80,7 @@ class Solar(NpAnnotBase):
                 self.date = np.array(self.date)
                 self.radiation = np.array(self.radiation)
         return self
+
 
 if __name__ == "__main__":
     # print(Solar("2_вторая часть сезона/солнечная радиация/sun_bagan.xlsx"))

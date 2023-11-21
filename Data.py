@@ -7,6 +7,7 @@ import logging
 from Date import Date
 from NpAnnotBase import NpAnnotBase
 
+
 class Data(NpAnnotBase):
     name: str
     lat: float
@@ -27,7 +28,8 @@ class Data(NpAnnotBase):
             xl = openpyxl.open(file_path)
             page = xl.active
             # iterate over annotations and readed from xl cols. NOTE: Assuming annotations and columns are in the same order
-            for (k, tpe), readed in zip(self.__annotations__.items(), page.iter_cols(0,len(self.__annotations__), values_only=True)):
+            for (k, tpe), readed in zip(self.__annotations__.items(),
+                                        page.iter_cols(0, len(self.__annotations__), values_only=True)):
                 # vectorize type for faster type conversions
                 np_func = np.vectorize(tpe)
                 # set attribute to readed array, converted to annotation type
@@ -51,7 +53,7 @@ class Data(NpAnnotBase):
                         # iterate over values in row
                         for val, (name, type) in zip(row, self.__annotations__.items()):
                             # check tabs and strip
-                            if "\t"*5 in val:
+                            if "\t" * 5 in val:
                                 dbg = val[:val.find("\t")]
                                 logging.warning(f"found tabs in '{row}' at '{val}'. truncated to {dbg}")
                                 val = dbg
@@ -60,14 +62,16 @@ class Data(NpAnnotBase):
                                 parsed_row.append(type(val))
                             except Exception as e:
                                 # NOTE: Skipping non-convertible lines
-                                logging.warning(f"Exception {e} occuped while parsing {val} to {name} at {row_i} row. Skipping row...")
+                                logging.warning(
+                                    f"Exception {e} occuped while parsing {val} to {name} at {row_i} row. Skipping row...")
                                 break
                         else:
                             parsed_count = len(parsed_row)
                             if parsed_count == param_count:
                                 parsed.append(parsed_row)
                             else:
-                                logging.warning(f"parsed not enough params: {parsed_count} != {param_count} at row {row_i}")
+                                logging.warning(
+                                    f"parsed not enough params: {parsed_count} != {param_count} at row {row_i}")
                 parsed = np.transpose(np.array(parsed))
                 # convert attribute lists to np.array
                 for k, v in zip(self.__annotations__.keys(), parsed):

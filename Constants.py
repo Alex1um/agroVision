@@ -17,7 +17,7 @@ class Constants:
     Tb: float
     Topt: float
     ad: float
-    СО2: float
+    CO2: float
     ah1: float
     ah2: float
     bc1: float

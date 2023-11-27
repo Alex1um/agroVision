@@ -46,7 +46,8 @@ class Solar(NpAnnotBase):
                         parsed.append(parsed_row)
                     else:
                         solar_logger.warning(f"{file_path} - Parsed not enough params: {parsed_count} != {param_count} at row {row_i}")
-                        errors += 1
+                        warnings += 1
+                successful += 1
             else:
                 parsed_total = row_i + 1
             # to np array
@@ -84,6 +85,8 @@ class Solar(NpAnnotBase):
                     for i, val in enumerate(values):
                         self.date.append(Date(datetime.strptime(f"{i + 1}/{month}", "%d/%m/%y")))
                         self.radiation.append(val)
+                        successful += 1
+                        parsed_total += 1
                 self.date = np.array(self.date)
                 self.radiation = np.array(self.radiation)
         solar_logger.info(

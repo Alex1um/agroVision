@@ -118,7 +118,8 @@ class Data(NpAnnotBase):
                             )
                             errors += 1
                             break
-                        parsed_total += 1
+                    else:
+                        parsed_total = row_i + 1
                     parsed = np.transpose(np.array(parsed))
                     # convert attribute lists to np.array
                     for k, v in zip(self.__annotations__.keys(), parsed):

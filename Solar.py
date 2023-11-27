@@ -1,6 +1,5 @@
 import openpyxl
 import numpy as np
-import csv
 from openpyxl.utils.exceptions import InvalidFileException
 from datetime import datetime
 from openpyxl.worksheet.worksheet import Worksheet
@@ -18,6 +17,10 @@ class Solar(NpAnnotBase):
         self = self()
         is_xl = True
         param_count = len(self.__annotations__)
+        parsed_total = 0
+        warnings = 0
+        successful = 0
+        errors = 0
         # xl same as in data
         try:
             xl = openpyxl.open(file_path, read_only=True, data_only=True)
@@ -34,6 +37,7 @@ class Solar(NpAnnotBase):
                         except Exception as e:
                             solar_logger.warning(
                                 f"{file_path} - Exception {e} occuped while parsing {val} to {name} at {row_i} row. Skipping row...")
+                            warnings += 1
                             break
                 else:
                     # check parsed count
@@ -42,15 +46,18 @@ class Solar(NpAnnotBase):
                         parsed.append(parsed_row)
                     else:
                         solar_logger.warning(f"{file_path} - Parsed not enough params: {parsed_count} != {param_count} at row {row_i}")
+                        errors += 1
+            else:
+                parsed_total = row_i + 1
             # to np array
             parsed = np.transpose(np.array(parsed))
             for k, v in zip(self.__annotations__.keys(), parsed):
                 self.__setattr__(k, v)
         except InvalidFileException as ie:
-            solar_logger.info(f"Cannot open file {file_path} as xl: {ie}. Trying parse as plain text")
+            solar_logger.debug(f"{file_path} - Cannot open file as xl: {ie}. Trying parse as plain text")
             is_xl = False
         except Exception as e:
-            solar_logger.error(f"Cannot parse file {file_path}: {e}")
+            solar_logger.error(f"{file_path} - Cannot parse file: {e}")
         # plain text
         if not is_xl:
             with open(file_path, "r") as f:
@@ -79,6 +86,9 @@ class Solar(NpAnnotBase):
                         self.radiation.append(val)
                 self.date = np.array(self.date)
                 self.radiation = np.array(self.radiation)
+        solar_logger.info(
+            f"{file_path} - Successfully parsed {successful} rows of {parsed_total} total. Errors: {errors}, Warnings: {warnings}"
+        )
         return self
 
 

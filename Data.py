@@ -6,6 +6,7 @@ from datetime import datetime
 import logging
 from Date import Date
 from NpAnnotBase import NpAnnotBase
+from loggers import meteo_logger
 
 
 class Data(NpAnnotBase):
@@ -35,10 +36,10 @@ class Data(NpAnnotBase):
                 # set attribute to readed array, converted to annotation type
                 self.__setattr__(k, np_func(np.array(readed)))
         except InvalidFileException as ie:
-            logging.info(f"file {file_path} is not a xl file(exception: {ie}). Trying to parse as csv...")
+            meteo_logger.info(f"file {file_path} is not a xl file(exception: {ie}). Trying to parse as csv...")
             xl = False
         except Exception as e:
-            logging.error(f"Exception {e} occuped while parsing xl file {file_path}")
+            meteo_logger.error(f"Exception {e} occuped while parsing xl file {file_path}")
         if not xl:
             with open(file_path, "r") as f:
                 readed = csv.reader(f)
@@ -55,23 +56,23 @@ class Data(NpAnnotBase):
                             # check tabs and strip
                             if "\t" * 5 in val:
                                 dbg = val[:val.find("\t")]
-                                logging.warning(f"found tabs in '{row}' at '{val}'. truncated to {dbg}")
+                                meteo_logger.warning(f"{file_path} - found tabs in '{row}' at '{val}'. truncated to {dbg}")
                                 val = dbg
                             try:
                                 # convert readed value and add to current (col_name) attribute list
                                 parsed_row.append(type(val))
                             except Exception as e:
                                 # NOTE: Skipping non-convertible lines
-                                logging.warning(
-                                    f"Exception {e} occuped while parsing {val} to {name} at {row_i} row. Skipping row...")
+                                meteo_logger.warning(
+                                    f"{file_path} - Exception {e} occuped while parsing {val} to {name} at {row_i} row. Skipping row...")
                                 break
                         else:
                             parsed_count = len(parsed_row)
                             if parsed_count == param_count:
                                 parsed.append(parsed_row)
                             else:
-                                logging.warning(
-                                    f"parsed not enough params: {parsed_count} != {param_count} at row {row_i}")
+                                meteo_logger.warning(
+                                    f"{file_path} - Parsed not enough params: {parsed_count} != {param_count} at row {row_i}")
                 parsed = np.transpose(np.array(parsed))
                 # convert attribute lists to np.array
                 for k, v in zip(self.__annotations__.keys(), parsed):

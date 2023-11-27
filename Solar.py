@@ -36,7 +36,8 @@ class Solar(NpAnnotBase):
                             parsed_row.append(type(val))
                         except Exception as e:
                             solar_logger.warning(
-                                f"{file_path} - Exception {e} occuped while parsing {val} to {name} at {row_i} row. Skipping row...")
+                                f"{file_path} - Exception {e} occuped while parsing {val} to {name} at {row_i} row. Skipping row..."
+                            )
                             warnings += 1
                             break
                 else:
@@ -45,7 +46,9 @@ class Solar(NpAnnotBase):
                     if param_count == param_count:
                         parsed.append(parsed_row)
                     else:
-                        solar_logger.warning(f"{file_path} - Parsed not enough params: {parsed_count} != {param_count} at row {row_i}")
+                        solar_logger.warning(
+                            f"{file_path} - Parsed not enough params: {parsed_count} != {param_count} at row {row_i}"
+                        )
                         warnings += 1
                 successful += 1
             else:
@@ -55,7 +58,9 @@ class Solar(NpAnnotBase):
             for k, v in zip(self.__annotations__.keys(), parsed):
                 self.__setattr__(k, v)
         except InvalidFileException as ie:
-            solar_logger.debug(f"{file_path} - Cannot open file as xl: {ie}. Trying parse as plain text")
+            solar_logger.debug(
+                f"{file_path} - Cannot open file as xl: {ie}. Trying parse as plain text"
+            )
             is_xl = False
         except Exception as e:
             solar_logger.error(f"{file_path} - Cannot parse file: {e}")
@@ -83,7 +88,9 @@ class Solar(NpAnnotBase):
                 # convert to arrays
                 for month, values in zip(months, values):
                     for i, val in enumerate(values):
-                        self.date.append(Date(datetime.strptime(f"{i + 1}/{month}", "%d/%m/%y")))
+                        self.date.append(
+                            Date(datetime.strptime(f"{i + 1}/{month}", "%d/%m/%y"))
+                        )
                         self.radiation.append(val)
                         successful += 1
                         parsed_total += 1

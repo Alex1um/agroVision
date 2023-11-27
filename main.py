@@ -84,7 +84,7 @@ def result_count(biom: np.ndarray):
 
 def main():
     # можно задать 3 параметром, куда сохранять результирующий xl
-    table = ResultTable("excels/Таблица вычислений_НСО_районы_2022.xlsx", "excels/Перечень_район_метеостанция.xlsx")
+    table = ResultTable("excels/Таблица вычислений_НСО_районы.xlsx", "excels/Перечень_район_метеостанция.xlsx")
     # переменные итерирования(ниже): (имена файлов(не пути!)), (дата начала, дата конца), (индексы урожайности(HI)), ("Что должно получиться по факту", индексы) - как в xl
     for (meteo_file_name, solar_file_name), (date_start, date_end), HI, res_values in table.iter():
         meteo_file_path_1 = table.find_path_in_dir("1_первая часть сезона",
@@ -101,8 +101,9 @@ def main():
         full_data = data + data2
         data = full_data[date_start:]
 
-        solar: Solar = Solar.from_file(solar_file_path_1)
-        solar2: Solar = Solar.from_file(solar_file_path_2)
+        current_year = date_start.year
+        solar: Solar = Solar.from_file(solar_file_path_1, current_year)
+        solar2: Solar = Solar.from_file(solar_file_path_2, current_year)
         solar += solar2
         solar = solar[date_start:]
 

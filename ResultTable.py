@@ -19,12 +19,14 @@ class ResultTable:
         for row in self.sheet.iter_rows(4):
             self.crow = row
             values = [e.value for e in row if e is not None]
-            yield (self.files[values[0]], (values[1], values[2]), np.array(values[3:6]), np.array(values[10:13]))
+            if len(values) >= 14 and all(e is not None for e in values[:6]):
+                yield (self.files[values[0]], (values[1], values[2]), np.array(values[3:6]), np.array(values[10:13]))
         self.xl.save(self.out)
 
     def set_current_row(self, values: tuple[int, int, int]):
-        for c, v in zip(self.crow[6:9], values):
-            c.value = v
+        if values:
+            for c, v in zip(self.crow[6:9], values):
+                c.value = v
 
     @staticmethod
     def find_path_in_dir(dir: str, file_name: str):

@@ -3,10 +3,10 @@ import numpy as np
 import csv
 from openpyxl.utils.exceptions import InvalidFileException
 from datetime import datetime
-import logging
 from openpyxl.worksheet.worksheet import Worksheet
 from Date import Date
 from NpAnnotBase import NpAnnotBase
+from loggers import solar_logger
 
 
 class Solar(NpAnnotBase):
@@ -32,8 +32,8 @@ class Solar(NpAnnotBase):
                         try:
                             parsed_row.append(type(val))
                         except Exception as e:
-                            logging.warning(
-                                f"Exception {e} occuped while parsing {val} to {name} at {row_i} row. Skipping row...")
+                            solar_logger.warning(
+                                f"{file_path} - Exception {e} occuped while parsing {val} to {name} at {row_i} row. Skipping row...")
                             break
                 else:
                     # check parsed count
@@ -41,16 +41,16 @@ class Solar(NpAnnotBase):
                     if param_count == param_count:
                         parsed.append(parsed_row)
                     else:
-                        logging.warning(f"parsed not enough params: {parsed_count} != {param_count} at row {row_i}")
+                        solar_logger.warning(f"{file_path} - Parsed not enough params: {parsed_count} != {param_count} at row {row_i}")
             # to np array
             parsed = np.transpose(np.array(parsed))
             for k, v in zip(self.__annotations__.keys(), parsed):
                 self.__setattr__(k, v)
         except InvalidFileException as ie:
-            logging.info(f"Cannot open file {file_path} as xl: {ie}. Trying parse as plain text")
+            solar_logger.info(f"Cannot open file {file_path} as xl: {ie}. Trying parse as plain text")
             is_xl = False
         except Exception as e:
-            logging.error(f"Cnnot parse file {file_path}: {e}")
+            solar_logger.error(f"Cannot parse file {file_path}: {e}")
         # plain text
         if not is_xl:
             with open(file_path, "r") as f:

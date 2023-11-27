@@ -101,6 +101,7 @@ class Data(NpAnnotBase):
                                     parsed_count = len(parsed_row)
                                     if parsed_count == param_count:
                                         parsed.append(parsed_row)
+                                        successful += 1
                                     else:
                                         meteo_logger.warning(
                                             f"{file_path} - Parsed not enough params: {parsed_count} != {param_count} at row {row_i}"
@@ -111,7 +112,6 @@ class Data(NpAnnotBase):
                                     f"{file_path} - Row {row_i} is empty"
                                 )
                                 warnings += 1
-                            successful += 1
                         except Exception as e:
                             meteo_logger.error(
                                 "{file_path} - Error occupied while parsing row {row_i}: {e}"

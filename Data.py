@@ -42,7 +42,13 @@ class Data(NpAnnotBase):
                 np_func = np.vectorize(tpe)
                 # set attribute to readed array, converted to annotation type
                 try:
-                    self.__setattr__(k, np_func(np.array(readed)))
+                    np_converted = np_func(np.array(readed))
+                    ln = len(np_converted)
+                    if ln > parsed_total:
+                        parsed_total = ln
+                    if successful == 0 or ln < successful:
+                        successful = ln
+                    self.__setattr__(k, np_converted)
                 except Exception as e:
                     meteo_logger.error(
                         f"{file_path} - Error occupied while type convertation in column {col_i}: {e}"

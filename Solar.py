@@ -14,7 +14,9 @@ class Solar(NpAnnotBase):
     radiation: float
 
     @classmethod
-    def from_file(self, file_path: str) -> None:
+    def from_file(self, file_path: str, year: int = 2022) -> None:
+        # for parsing 
+        Date.CURRENT_YEAR = year
         self = self()
         is_xl = True
         param_count = len(self.__annotations__)

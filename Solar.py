@@ -1,12 +1,11 @@
 import openpyxl
 import numpy as np
-import csv
 from openpyxl.utils.exceptions import InvalidFileException
 from datetime import datetime
-import logging
 from openpyxl.worksheet.worksheet import Worksheet
 from Date import Date
 from NpAnnotBase import NpAnnotBase
+from loggers import solar_logger
 
 
 class Solar(NpAnnotBase):
@@ -14,10 +13,16 @@ class Solar(NpAnnotBase):
     radiation: float
 
     @classmethod
-    def from_file(self, file_path: str) -> None:
+    def from_file(self, file_path: str, year: int = 2022) -> None:
+        # for parsing 
+        Date.CURRENT_YEAR = year
         self = self()
         is_xl = True
         param_count = len(self.__annotations__)
+        parsed_total = 0
+        warnings = 0
+        successful = 0
+        errors = 0
         # xl same as in data
         try:
             xl = openpyxl.open(file_path, read_only=True, data_only=True)
@@ -32,8 +37,10 @@ class Solar(NpAnnotBase):
                         try:
                             parsed_row.append(type(val))
                         except Exception as e:
-                            logging.warning(
-                                f"Exception {e} occuped while parsing {val} to {name} at {row_i} row. Skipping row...")
+                            solar_logger.warning(
+                                f"{file_path} - Exception {e} occuped while parsing {val} to {name} at {row_i} row. Skipping row..."
+                            )
+                            warnings += 1
                             break
                 else:
                     # check parsed count
@@ -41,16 +48,24 @@ class Solar(NpAnnotBase):
                     if param_count == param_count:
                         parsed.append(parsed_row)
                     else:
-                        logging.warning(f"parsed not enough params: {parsed_count} != {param_count} at row {row_i}")
+                        solar_logger.warning(
+                            f"{file_path} - Parsed not enough params: {parsed_count} != {param_count} at row {row_i}"
+                        )
+                        warnings += 1
+                successful += 1
+            else:
+                parsed_total = row_i + 1
             # to np array
             parsed = np.transpose(np.array(parsed))
             for k, v in zip(self.__annotations__.keys(), parsed):
                 self.__setattr__(k, v)
         except InvalidFileException as ie:
-            logging.info(f"Cannot open file {file_path} as xl: {ie}. Trying parse as plain text")
+            solar_logger.debug(
+                f"{file_path} - Cannot open file as xl: {ie}. Trying parse as plain text"
+            )
             is_xl = False
         except Exception as e:
-            logging.error(f"Cnnot parse file {file_path}: {e}")
+            solar_logger.error(f"{file_path} - Cannot parse file: {e}")
         # plain text
         if not is_xl:
             with open(file_path, "r") as f:
@@ -75,10 +90,17 @@ class Solar(NpAnnotBase):
                 # convert to arrays
                 for month, values in zip(months, values):
                     for i, val in enumerate(values):
-                        self.date.append(Date(datetime.strptime(f"{i + 1}/{month}", "%d/%m/%y")))
+                        self.date.append(
+                            Date(datetime.strptime(f"{i + 1}/{month}", "%d/%m/%y"))
+                        )
                         self.radiation.append(val)
+                        successful += 1
+                        parsed_total += 1
                 self.date = np.array(self.date)
                 self.radiation = np.array(self.radiation)
+        solar_logger.info(
+            f"{file_path} - Successfully parsed {successful} rows of {parsed_total} total. Errors: {errors}, Warnings: {warnings}"
+        )
         return self
 
 

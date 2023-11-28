@@ -101,8 +101,9 @@ def main():
         full_data = data + data2
         data = full_data[date_start:]
 
-        solar: Solar = Solar.from_file(solar_file_path_1)
-        solar2: Solar = Solar.from_file(solar_file_path_2)
+        current_year = date_start.year
+        solar: Solar = Solar.from_file(solar_file_path_1, current_year)
+        solar2: Solar = Solar.from_file(solar_file_path_2, current_year)
         solar += solar2
         solar = solar[date_start:]
 

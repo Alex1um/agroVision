@@ -5,6 +5,7 @@ from Constants import ConstantNotFoundException
 from Data import Data
 from Solar import Solar
 from ResultTable import *
+from loggers import root_logger
 
 
 def hut_count(max_temps: np.ndarray, min_temps: np.ndarray):
@@ -107,6 +108,11 @@ def main():
         solar += solar2
         solar = solar[date_start:]
 
+        if len(solar) != len(data):
+            root_logger.error(
+                f"Meteo files {meteo_file_name} and solar files {solar_file_name} have different day amount")
+            continue
+
         hut = hut_count(data.Tmax, data.Tmin)
 
         hui = hui_count(hut)
@@ -139,8 +145,8 @@ def main():
 
         result = result_count(biom)
 
-        print(meteo_file_name, solar_file_name, date_start, mid_date, len(data.Tmax), result, np.max(biom))
-        #print(result * HI[0] * 10, result * HI[1] * 10, result * HI[2] * 10)
+        root_logger.info(
+            f"Count parameters in {meteo_file_name}: start date {date_start}, middle date {mid_date}, days count {len(data.Tmax)}, result of counting {result}\n")
 
         table.set_current_row((result * HI[0] * 10, result * HI[1] * 10, result * HI[2] * 10))
         # Запись в Прогноз (индекс 1, индекс 2, индекс 1). Можно использовать любой итератор(list/tuple/np.array)

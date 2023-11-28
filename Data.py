@@ -2,7 +2,6 @@ import openpyxl
 import numpy as np
 import csv
 from openpyxl.utils.exceptions import InvalidFileException
-from datetime import datetime
 import logging
 from Date import Date
 from NpAnnotBase import NpAnnotBase
